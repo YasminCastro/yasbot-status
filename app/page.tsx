@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
 import { MonitoringHeader } from "@/components/monitoring/header";
 import { StatusCard } from "@/components/monitoring/status-card";
 import { PingsChart } from "@/components/monitoring/pings-chart";
@@ -27,8 +30,11 @@ export default function Home() {
   }, []);
 
   const isOnline = data?.online ?? false;
+
   const lastUpdated = data?.lastPing
-    ? new Date(data.lastPing).toLocaleString()
+    ? format(new Date(data.lastPing), "iiii, P p", {
+        locale: ptBR,
+      })
     : "sem dados";
 
   return (

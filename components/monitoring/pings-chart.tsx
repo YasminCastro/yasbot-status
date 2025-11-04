@@ -70,9 +70,18 @@ export function PingsChart({ data }: PingsChartProps) {
                   domain={[0, 1]}
                   tickLine={false}
                   axisLine={false}
-                  width={30}
+                  width={60}
                   stroke="currentColor"
                   className="text-xs text-muted-foreground"
+                  tickFormatter={(value) => {
+                    if (value === 1) {
+                      return "Online";
+                    }
+                    if (value === 0) {
+                      return "Offline";
+                    }
+                    return "";
+                  }}
                 />
                 <ReferenceLine y={1} stroke="#22c55e30" />
                 <ReferenceLine y={0} stroke="#ef444430" />

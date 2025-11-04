@@ -7,6 +7,9 @@ import {
   addMinutes,
   isWithinInterval,
   format,
+  setMinutes,
+  setSeconds,
+  setMilliseconds,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -24,12 +27,20 @@ export async function GET(req: Request) {
     const collection = db.collection("pings");
 
     const now = new Date();
-    const windowStart = subHours(now, WINDOW_HOURS);
+
+    const cleanNow = setMilliseconds(setSeconds(now, 0), 0);
+
+    const currentMinutes = cleanNow.getMinutes();
+    const alignedMinutes =
+      Math.floor(currentMinutes / SLOT_MINUTES) * SLOT_MINUTES;
+    const alignedNow = setMinutes(cleanNow, alignedMinutes);
+
+    const windowStart = subHours(alignedNow, WINDOW_HOURS);
 
     const pings = await collection
       .find({
         botId,
-        createdAt: { $gte: windowStart, $lte: now },
+        createdAt: { $gte: windowStart, $lte: alignedNow },
       })
       .sort({ createdAt: 1 })
       .toArray();
@@ -56,7 +67,7 @@ export async function GET(req: Request) {
       });
     }
 
-    const fifteenMinutesAgo = subMinutes(now, 15);
+    const fifteenMinutesAgo = subMinutes(alignedNow, 15);
     const lastPing = pings.length ? pings[pings.length - 1] : null;
 
     const online =
