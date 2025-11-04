@@ -15,6 +15,8 @@ import { ptBR } from "date-fns/locale";
 
 export const runtime = "nodejs";
 
+//
+
 const SLOT_MINUTES = 10;
 const WINDOW_HOURS = 24;
 
