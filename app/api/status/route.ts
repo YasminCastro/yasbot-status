@@ -1,6 +1,14 @@
 // app/api/status/route.ts
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
+import {
+  subHours,
+  subMinutes,
+  addMinutes,
+  isWithinInterval,
+  format,
+} from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const runtime = "nodejs";
 
@@ -16,46 +24,52 @@ export async function GET(req: Request) {
     const collection = db.collection("pings");
 
     const now = new Date();
-    const start = new Date(now.getTime() - WINDOW_HOURS * 60 * 60 * 1000);
+    const windowStart = subHours(now, WINDOW_HOURS);
 
     const pings = await collection
       .find({
         botId,
-        createdAt: { $gte: start, $lte: now },
+        createdAt: { $gte: windowStart, $lte: now },
       })
       .sort({ createdAt: 1 })
       .toArray();
 
     const totalSlots = (WINDOW_HOURS * 60) / SLOT_MINUTES;
-    const slots: { time: string; status: number }[] = [];
+    const points: { time: string; status: number }[] = [];
 
     for (let i = 0; i < totalSlots; i++) {
-      const slotStart = new Date(
-        start.getTime() + i * SLOT_MINUTES * 60 * 1000
-      );
-      const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60 * 1000);
+      const slotStart = addMinutes(windowStart, i * SLOT_MINUTES);
+      const slotEnd = addMinutes(slotStart, SLOT_MINUTES);
 
-      const hasPing = pings.some(
-        (p) => p.createdAt >= slotStart && p.createdAt < slotEnd
+      const pingsInSlot = pings.filter((p) =>
+        isWithinInterval(p.createdAt, { start: slotStart, end: slotEnd })
       );
 
-      const hh = slotStart.getHours().toString().padStart(2, "0");
-      const mm = slotStart.getMinutes().toString().padStart(2, "0");
+      let status = 0;
+      if (pingsInSlot.length > 0) {
+        status = pingsInSlot.some((p) => p.status === 1) ? 1 : 0;
+      }
 
-      slots.push({
-        time: `${hh}:${mm}`,
-        status: hasPing ? 1 : 0,
+      points.push({
+        time: format(slotStart, "HH:mm", { locale: ptBR }),
+        status,
       });
     }
 
-    const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
-    const lastPing = pings.length ? pings[pings.length - 1].createdAt : null;
-    const isOnline = lastPing && lastPing >= fifteenMinutesAgo ? true : false;
+    const fifteenMinutesAgo = subMinutes(now, 15);
+    const lastPing = pings.length ? pings[pings.length - 1] : null;
+
+    const online =
+      lastPing &&
+      lastPing.createdAt >= fifteenMinutesAgo &&
+      (lastPing.status === undefined || lastPing.status === 1)
+        ? true
+        : false;
 
     return NextResponse.json({
-      online: isOnline,
-      lastPing,
-      points: slots,
+      online,
+      lastPing: lastPing ? lastPing.createdAt : null,
+      points,
     });
   } catch (err) {
     console.error("STATUS ERROR", err);

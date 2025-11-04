@@ -1,21 +1,21 @@
 "use client";
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
-  Tooltip,
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
+
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 type PingPoint = {
   time: string;
@@ -25,6 +25,13 @@ type PingPoint = {
 type PingsChartProps = {
   data: PingPoint[];
 };
+
+const chartConfig = {
+  status: {
+    label: "Status",
+    color: "#22c55e",
+  },
+} satisfies ChartConfig;
 
 export function PingsChart({ data }: PingsChartProps) {
   return (
@@ -36,52 +43,80 @@ export function PingsChart({ data }: PingsChartProps) {
       </CardHeader>
       <CardContent>
         <div className="h-72 w-full min-w-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={data}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <XAxis
-                dataKey="time"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                stroke="currentColor"
-                className="text-xs text-muted-foreground"
-              />
-              <YAxis
-                ticks={[0, 1]}
-                domain={[0, 1]}
-                tickLine={false}
-                axisLine={false}
-                width={30}
-                stroke="currentColor"
-                className="text-xs text-muted-foreground"
-              />
-              <Tooltip
-                formatter={(value: number) =>
-                  value === 1 ? "Online" : "Offline"
-                }
-                contentStyle={{
-                  background: "hsl(var(--background))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "0.5rem",
-                  fontSize: "0.75rem",
-                }}
-                labelStyle={{ color: "hsl(var(--muted-foreground))" }}
-              />
-              <ReferenceLine y={1} stroke="#22c55e30" />
-              <ReferenceLine y={0} stroke="#ef444430" />
-              <Line
-                type="stepAfter"
-                dataKey="status"
-                stroke="#22c55e"
-                strokeWidth={2}
-                dot={{ r: 2 }}
-                activeDot={{ r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <ChartContainer config={chartConfig} className="h-full w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={data}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="lineColor" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#22c55e" />
+                    <stop offset="100%" stopColor="#ef4444" />
+                  </linearGradient>
+                </defs>
+
+                <XAxis
+                  dataKey="time"
+                  type="category"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  stroke="currentColor"
+                  className="text-xs text-muted-foreground"
+                />
+                <YAxis
+                  ticks={[0, 1]}
+                  domain={[0, 1]}
+                  tickLine={false}
+                  axisLine={false}
+                  width={30}
+                  stroke="currentColor"
+                  className="text-xs text-muted-foreground"
+                />
+                <ReferenceLine y={1} stroke="#22c55e30" />
+                <ReferenceLine y={0} stroke="#ef444430" />
+
+                <ChartTooltip
+                  cursor={{
+                    stroke: "hsl(var(--muted-foreground))",
+                    strokeWidth: 1,
+                    strokeDasharray: "3 3",
+                  }}
+                  content={
+                    <ChartTooltipContent
+                      indicator="dot"
+                      formatter={(value: any, name: any) => {
+                        if (name === "status") {
+                          const isOnline = value === 1;
+                          const color = isOnline ? "#22c55e" : "#ef4444";
+                          const text = isOnline ? "Online" : "Offline";
+
+                          return (
+                            <span
+                              className="font-medium"
+                              style={{ color: color }}
+                            >
+                              {text}
+                            </span>
+                          );
+                        }
+                      }}
+                    />
+                  }
+                />
+
+                <Line
+                  type="monotone"
+                  dataKey="status"
+                  stroke="url(#lineColor)"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         </div>
       </CardContent>
     </Card>
