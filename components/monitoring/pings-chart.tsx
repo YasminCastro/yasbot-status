@@ -64,7 +64,8 @@ export function PingsChart({ data }: PingsChartProps) {
                   tickMargin={8}
                   stroke="currentColor"
                   className="text-xs text-muted-foreground"
-                  interval={5}
+                  interval="preserveStartEnd"
+                  minTickGap={40}
                 />
                 <YAxis
                   ticks={[0, 1]}
