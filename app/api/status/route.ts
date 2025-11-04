@@ -10,7 +10,7 @@ const WINDOW_HOURS = 24;
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
-    const botId = url.searchParams.get("botId") || "default";
+    const botId = url.searchParams.get("botId") || "yasbot";
 
     const db = await getDb();
     const collection = db.collection("pings");
@@ -35,12 +35,10 @@ export async function GET(req: Request) {
       );
       const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60 * 1000);
 
-      // tem algum ping dentro desse intervalo?
       const hasPing = pings.some(
         (p) => p.createdAt >= slotStart && p.createdAt < slotEnd
       );
 
-      // formata horário hh:mm
       const hh = slotStart.getHours().toString().padStart(2, "0");
       const mm = slotStart.getMinutes().toString().padStart(2, "0");
 
@@ -50,7 +48,6 @@ export async function GET(req: Request) {
       });
     }
 
-    // está online se teve ping nos últimos 15 minutos
     const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
     const lastPing = pings.length ? pings[pings.length - 1].createdAt : null;
     const isOnline = lastPing && lastPing >= fifteenMinutesAgo ? true : false;

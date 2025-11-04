@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     await collection.insertOne({
       botId,
-      status, // 1 = ok, 0 = caiu
+      status,
       createdAt: new Date(),
     });
 
