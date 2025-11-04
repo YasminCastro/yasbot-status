@@ -14,8 +14,7 @@ import {
 import { ptBR } from "date-fns/locale";
 
 export const runtime = "nodejs";
-
-//
+export const dynamic = "force-dynamic";
 
 const SLOT_MINUTES = 10;
 const WINDOW_HOURS = 24;
@@ -31,18 +30,19 @@ export async function GET(req: Request) {
     const now = new Date();
 
     const cleanNow = setMilliseconds(setSeconds(now, 0), 0);
-
     const currentMinutes = cleanNow.getMinutes();
     const alignedMinutes =
       Math.floor(currentMinutes / SLOT_MINUTES) * SLOT_MINUTES;
     const alignedNow = setMinutes(cleanNow, alignedMinutes);
-
     const windowStart = subHours(alignedNow, WINDOW_HOURS);
 
     const pings = await collection
       .find({
         botId,
-        createdAt: { $gte: windowStart, $lte: alignedNow },
+        createdAt: {
+          $gte: windowStart,
+          $lte: now,
+        },
       })
       .sort({ createdAt: 1 })
       .toArray();
@@ -69,7 +69,7 @@ export async function GET(req: Request) {
       });
     }
 
-    const fifteenMinutesAgo = subMinutes(alignedNow, 15);
+    const fifteenMinutesAgo = subMinutes(now, 15);
     const lastPing = pings.length ? pings[pings.length - 1] : null;
 
     const online =
