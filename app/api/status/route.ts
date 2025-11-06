@@ -12,12 +12,14 @@ import {
   setMilliseconds,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toZonedTime } from "date-fns-tz";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const SLOT_MINUTES = 10;
 const WINDOW_HOURS = 24;
+const TIME_ZONE = "America/Sao_Paulo";
 
 export async function GET(req: Request) {
   try {
@@ -63,8 +65,10 @@ export async function GET(req: Request) {
         status = pingsInSlot.some((p) => p.status === 1) ? 1 : 0;
       }
 
+      const slotInSaoPaulo = toZonedTime(slotStart, TIME_ZONE);
+
       points.push({
-        time: format(slotStart, "HH:mm", { locale: ptBR }),
+        time: format(slotInSaoPaulo, "HH:mm", { locale: ptBR }),
         status,
       });
     }
@@ -79,9 +83,13 @@ export async function GET(req: Request) {
         ? true
         : false;
 
+    const lastPingZoned = lastPing
+      ? toZonedTime(lastPing.createdAt, TIME_ZONE)
+      : null;
+
     return NextResponse.json({
       online,
-      lastPing: lastPing ? lastPing.createdAt : null,
+      lastPing: lastPingZoned,
       points,
     });
   } catch (err) {
