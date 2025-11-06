@@ -32,7 +32,14 @@ export default function Home() {
   const isOnline = data?.online ?? false;
 
   const lastUpdated = data?.lastPing
-    ? format(new Date(data.lastPing), "dd/LL/u, HH:mm")
+    ? new Date(data.lastPing).toLocaleString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
     : "sem dados";
 
   return (
