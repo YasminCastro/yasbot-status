@@ -32,9 +32,7 @@ export default function Home() {
   const isOnline = data?.online ?? false;
 
   const lastUpdated = data?.lastPing
-    ? format(new Date(data.lastPing), "iiii, P p", {
-        locale: ptBR,
-      })
+    ? format(new Date(data.lastPing), "dd/LL/u, HH:mm")
     : "sem dados";
 
   return (

@@ -49,7 +49,7 @@ export async function GET(req: Request) {
       .sort({ createdAt: 1 })
       .toArray();
 
-    const totalSlots = (WINDOW_HOURS * 60) / SLOT_MINUTES;
+    const totalSlots = (WINDOW_HOURS * 60) / SLOT_MINUTES + 1;
     const points: { time: string; status: number }[] = [];
 
     for (let i = 0; i < totalSlots; i++) {
