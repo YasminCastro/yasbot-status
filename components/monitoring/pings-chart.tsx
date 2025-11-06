@@ -19,6 +19,7 @@ import {
 
 type PingPoint = {
   time: string;
+  datetime?: string;
   status: number;
 };
 
@@ -76,12 +77,8 @@ export function PingsChart({ data }: PingsChartProps) {
                   stroke="currentColor"
                   className="text-xs text-muted-foreground"
                   tickFormatter={(value) => {
-                    if (value === 1) {
-                      return "Online";
-                    }
-                    if (value === 0) {
-                      return "Offline";
-                    }
+                    if (value === 1) return "Online";
+                    if (value === 0) return "Offline";
                     return "";
                   }}
                 />
@@ -97,6 +94,18 @@ export function PingsChart({ data }: PingsChartProps) {
                   content={
                     <ChartTooltipContent
                       indicator="dot"
+                      labelFormatter={(_, payload: any[]) => {
+                        const first = payload?.[0];
+                        const iso = first?.payload?.datetime;
+                        if (!iso) return first?.payload?.time ?? "";
+                        const d = new Date(iso);
+                        const dateStr = d.toLocaleDateString("pt-BR");
+                        const timeStr = d.toLocaleTimeString("pt-BR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        });
+                        return `${dateStr} ${timeStr}`;
+                      }}
                       formatter={(value: any, name: any) => {
                         if (name === "status") {
                           const isOnline = value === 1;
@@ -112,6 +121,7 @@ export function PingsChart({ data }: PingsChartProps) {
                             </span>
                           );
                         }
+                        return value;
                       }}
                     />
                   }

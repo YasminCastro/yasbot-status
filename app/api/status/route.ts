@@ -21,6 +21,12 @@ const SLOT_MINUTES = 10;
 const WINDOW_HOURS = 24;
 const TIME_ZONE = "America/Sao_Paulo";
 
+type PingPoint = {
+  time: string;
+  datetime: string;
+  status: number;
+};
+
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
@@ -50,7 +56,7 @@ export async function GET(req: Request) {
       .toArray();
 
     const totalSlots = (WINDOW_HOURS * 60) / SLOT_MINUTES + 1;
-    const points: { time: string; status: number }[] = [];
+    const points: PingPoint[] = [];
 
     for (let i = 0; i < totalSlots; i++) {
       const slotStart = addMinutes(windowStart, i * SLOT_MINUTES);
@@ -69,6 +75,7 @@ export async function GET(req: Request) {
 
       points.push({
         time: format(slotInSaoPaulo, "HH:mm", { locale: ptBR }),
+        datetime: slotInSaoPaulo.toISOString(),
         status,
       });
     }
